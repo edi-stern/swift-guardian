@@ -102,11 +102,3 @@ To add a new visitor:
 2. In `main.swift`, instantiate it, call `.walk(tree)`, and merge its `findings` with the existing array
 
 The `SourceAnnotator` and `ClaudeService` work with any `[Finding]` — they don't know which visitor produced them.
-
-## What I learned
-
-Building this taught me how static analysis tools actually work under the hood. SwiftLint, SonarQube, and similar tools all operate on the same principle — parse source into an AST, visit specific node types, report findings. The difference between a linter and a compiler is largely what you do with the tree once you have it.
-
-The interesting engineering problem was understanding what context to send to Claude. The expression alone (`pageSize!`) tells the model almost nothing. The surrounding lines reveal the type, the usage pattern, and the intended fix. Getting that context window right is what makes the suggestions useful rather than generic.
-
-The next step is interprocedural analysis — following a value across function boundaries to understand whether a force unwrap is truly unsafe or whether the caller has already guaranteed non-nil. That's the kind of analysis SonarQube and similar tools do, and it requires a control flow graph rather than a simple AST walk.
