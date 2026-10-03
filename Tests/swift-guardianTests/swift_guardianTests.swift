@@ -243,3 +243,16 @@ struct NilCheckDetectorTests {
         #expect(result == false)
     }
 }
+
+fileprivate extension NilCheckDetector {
+    // Convenience method for testing
+    static func isGuarded(expression: String, context: String) -> Bool {
+        let variableName = extractVariableName(from: expression)
+        guard !variableName.isEmpty else { return false }
+        let wrappedSource = "func __context__() {\n\(context)\n}"
+        let tree = Parser.parse(source: wrappedSource)
+        let visitor = NilCheckVisitor(variableName: variableName)
+        visitor.walk(tree)
+        return visitor.isGuarded
+    }
+}

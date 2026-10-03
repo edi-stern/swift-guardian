@@ -25,7 +25,7 @@ final class NilCheckVisitor: SyntaxVisitor {
         
         let hasVariable = elements.first?.as(DeclReferenceExprSyntax.self)?.baseName.text == variableName
         let hasNil = elements.last?.as(NilLiteralExprSyntax.self) != nil
-        let hasOperator = elements.dropFirst().first?.as(BinaryOperatorExprSyntax.self) != nil
+        let hasOperator = elements.dropFirst().first?.as(BinaryOperatorExprSyntax.self)?.operator.text == "!="
         
         if hasVariable && hasNil && hasOperator {
             isGuarded = true

@@ -48,6 +48,7 @@ print("⚠️  Found \(findings.count) unsafe patterns(s) in \(filePath)\n")
 // MARK: - Suggest
 
 var suggestions: [String] = []
+var updatedFindings: [Finding] = []
 
 for finding in findings {
     let context = ContextExtractor.extract(
@@ -62,6 +63,7 @@ for finding in findings {
             around: finding.line
         )
     )
+    updatedFindings.append(guardedFinding)
 
     print("  Line \(guardedFinding.line), Col \(guardedFinding.column): \(guardedFinding.expression)")
     
@@ -85,17 +87,17 @@ for finding in findings {
 
 let annotated = SourceAnnotator.annotate(
     source: source,
-    findings: findings,
+    findings: updatedFindings,
     suggestions: suggestions
 )
 
 try SourceAnnotator.write(annotatedSource: annotated, originalPath: filePath)
 
 // MARK: - Summary
-let totalUnwraps = findings.filter { $0.type == .forceUnwrap }.count
-let guardedUnwraps = findings.filter { $0.type == .forceUnwrap && $0.isGuarded }.count
-let totalTries = findings.filter { $0.type == .forceTry }.count
-let totalCasts = findings.filter { $0.type == .forceCast }.count
+let totalUnwraps = updatedFindings.filter { $0.type == .forceUnwrap }.count
+let guardedUnwraps = updatedFindings.filter { $0.type == .forceUnwrap && $0.isGuarded }.count
+let totalTries = updatedFindings.filter { $0.type == .forceTry }.count
+let totalCasts = updatedFindings.filter { $0.type == .forceCast }.count
 
 print("""
 📊 Summary

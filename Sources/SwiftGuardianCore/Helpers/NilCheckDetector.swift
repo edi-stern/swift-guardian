@@ -24,7 +24,7 @@ public enum NilCheckDetector {
         return visitor.isGuarded
     }
     
-    private static func extractVariableName(from expression: String) -> String{
+    public static func extractVariableName(from expression: String) -> String{
         expression
             .replacingOccurrences(of: "!", with: "")
             .trimmingCharacters(in: .whitespaces)
