@@ -39,7 +39,7 @@ let page = repository.fetchPage(offset: currentOffset, pageSize: pageSize)
 3. **Contextualise** — for each finding, the surrounding lines are extracted to give Claude enough context to understand the code
 4. **Suggest** — findings are sent to Claude via the Anthropic API with type-specific prompts — Claude is told whether it's reviewing a force unwrap, force try, or force cast, which produces more targeted suggestions
 5. **Annotate** — suggestions are inserted as `// 💡` comments directly above each finding in a new `.suggested.swift` file
-6. 6. **Guard detection** — before sending to Claude, the tool checks whether the force unwrap has a nearby nil check using AST-based analysis (NilCheckVisitor). Guarded findings receive a different prompt asking Claude to refactor both the nil check and the force unwrap into proper optional binding.
+6. **Guard detection** — before sending to Claude, the tool checks whether the force unwrap has a nearby nil check using AST-based analysis (NilCheckVisitor). Guarded findings receive a different prompt asking Claude to refactor both the nil check and the force unwrap into proper optional binding.
 
 ## Architecture
 
@@ -80,7 +80,7 @@ Tests/
 ## Installation
 
 ```bash
-git clone https://github.com/yourusername/swift-guardian.git
+git clone https://github.com/edi-stern/swift-guardian.git
 cd swift-guardian
 swift build
 ```
