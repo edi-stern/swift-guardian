@@ -209,3 +209,37 @@ struct FixtureTests {
         #expect(findings.count == 3)
     }
 }
+
+// MARK: - NilCheckDetector
+
+@Suite("NilCheckDetector")
+struct NilCheckDetectorTests {
+    
+    @Test func detectsGuardedWhenGuardLet() async throws {
+        let expression = "variable!"
+        let context = "guard let variable else { return }"
+        let result = NilCheckDetector.isGuarded(expression: expression, context: context)
+        #expect(result == true)
+    }
+    
+    @Test func detectsGuardedWhenIfLet() async throws {
+        let expression = "variable!"
+        let context = "if let variable else { return }"
+        let result = NilCheckDetector.isGuarded(expression: expression, context: context)
+        #expect(result == true)
+    }
+    
+    @Test func detectsGuardedWhenNilCheck() async throws {
+        let expression = "variable!"
+        let context = "if variable != nil { "
+        let result = NilCheckDetector.isGuarded(expression: expression, context: context)
+        #expect(result == true)
+    }
+    
+    @Test func detectsNotGuarded() async throws {
+        let expression = "variable!"
+        let context = "let unwritten = variable! "
+        let result = NilCheckDetector.isGuarded(expression: expression, context: context)
+        #expect(result == false)
+    }
+}
