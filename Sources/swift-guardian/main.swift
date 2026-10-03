@@ -23,23 +23,27 @@ let source = try String(contentsOfFile: filePath, encoding: .utf8)
 
 let tree = Parser.parse(source: source)
 let converter = SourceLocationConverter(fileName: filePath, tree: tree)
+
 let unwrapVisitor = ForceUnwrapVisitor(locationConverter: converter)
 unwrapVisitor.walk(tree)
 
 let tryVisitor = ForceTryVisitor(locationConverter: converter)
 tryVisitor.walk(tree)
 
-let findings = (unwrapVisitor.findings + tryVisitor.findings)
+let forceCastVisitor = ForceCastVisitor(locationConverter: converter)
+forceCastVisitor.walk(tree)
+
+let findings = (unwrapVisitor.findings + tryVisitor.findings + forceCastVisitor.findings)
     .sorted { $0.line < $1.line }
 
 // MARK: - Report
 
-guard !unwrapVisitor.findings.isEmpty || !tryVisitor.findings.isEmpty else {
-    print("✅ No force unwraps found in \(filePath)")
+guard !findings.isEmpty else {
+    print("✅ No unsafe patterns found in \(filePath)")
     exit(0)
 }
 
-print("⚠️  Found \(findings.count) force unwrap(s) in \(filePath)\n")
+print("⚠️  Found \(findings.count) unsafe patterns(s) in \(filePath)\n")
 
 // MARK: - Suggest
 
