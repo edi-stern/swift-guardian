@@ -90,3 +90,17 @@ let annotated = SourceAnnotator.annotate(
 )
 
 try SourceAnnotator.write(annotatedSource: annotated, originalPath: filePath)
+
+// MARK: - Summary
+let totalUnwraps = findings.filter { $0.type == .forceUnwrap }.count
+let guardedUnwraps = findings.filter { $0.type == .forceUnwrap && $0.isGuarded }.count
+let totalTries = findings.filter { $0.type == .forceTry }.count
+let totalCasts = findings.filter { $0.type == .forceCast }.count
+
+print("""
+📊 Summary
+   Force unwraps : \(totalUnwraps) (\(guardedUnwraps) guarded)
+   Force try     : \(totalTries)
+   Force casts   : \(totalCasts)
+   Total         : \(findings.count)
+""")
