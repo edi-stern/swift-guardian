@@ -21,7 +21,10 @@ public enum SourceAnnotator {
     }
 
     public static func write(annotatedSource: String, originalPath: String) throws {
-        let outputPath = originalPath.replacingOccurrences(of: ".swift", with: ".suggested.swift")
+        let outputURL = URL(fileURLWithPath: originalPath)
+            .deletingPathExtension()
+            .appendingPathExtension("suggested.swift")
+        let outputPath = outputURL.path
         try annotatedSource.write(toFile: outputPath, atomically: true, encoding: .utf8)
         print("📝 Annotated file written to:\n   \(outputPath)")
     }
