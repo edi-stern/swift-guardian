@@ -39,28 +39,33 @@ let page = repository.fetchPage(offset: currentOffset, pageSize: pageSize)
 3. **Contextualise** — for each finding, the surrounding lines are extracted to give Claude enough context to understand the code
 4. **Suggest** — findings are sent to Claude via the Anthropic API with type-specific prompts — Claude is told whether it's reviewing a force unwrap, force try, or force cast, which produces more targeted suggestions
 5. **Annotate** — suggestions are inserted as `// 💡` comments directly above each finding in a new `.suggested.swift` file
-6. **Guard detection** — before sending to Claude, the tool checks whether the force unwrap has a nearby nil check. Guarded findings receive a different prompt asking Claude to refactor both the nil check and the force unwrap into proper optional binding.
+6. 6. **Guard detection** — before sending to Claude, the tool checks whether the force unwrap has a nearby nil check using AST-based analysis (NilCheckVisitor). Guarded findings receive a different prompt asking Claude to refactor both the nil check and the force unwrap into proper optional binding.
 
 ## Architecture
 
 ```
 Sources/
 ├── swift-guardian/
-│   └── main.swift              — entry point, wires everything together
+│   └── main.swift                      — entry point, wires everything together
 └── SwiftGuardianCore/
-    ├── Finding.swift            — value type representing a detected issue (line, column, expression, type)
-    ├── ForceUnwrapVisitor.swift — AST visitor for force unwraps
-    ├── ForceTryVisitor.swift    — AST visitor for force try
-    ├── ForceCastVisitor.swift   — AST visitor for force casts
-    ├── ContextExtractor.swift   — extracts surrounding lines for a finding
-    ├── APIClient.swift          — generic HTTP POST layer
-    ├── ClaudeService.swift      — Anthropic API integration and prompt
-    └── SourceAnnotator.swift    — inserts suggestions and writes output file
+    ├── Visitors/
+    │   ├── ForceUnwrapVisitor.swift     — AST visitor for force unwraps
+    │   ├── ForceTryVisitor.swift        — AST visitor for force try
+    │   ├── ForceCastVisitor.swift       — AST visitor for force casts
+    │   └── NilCheckVisitor.swift        — AST visitor for nil check detection
+    ├── Helpers/
+    │   ├── Finding.swift                — value type representing a detected issue
+    │   ├── ContextExtractor.swift       — extracts surrounding lines for a finding
+    │   ├── SourceAnnotator.swift        — inserts suggestions and writes output file
+    │   └── NilCheckDetector.swift       — detects nil checks near force unwraps
+    └── Network/
+        ├── APIClient.swift              — generic HTTP POST layer
+        └── ClaudeService.swift          — Anthropic API integration and prompt
 
 Tests/
 └── swift-guardianTests/
     ├── Fixtures/
-    │   └── sample.swift         — known Swift file used in fixture tests
+    │   └── sample.swift                 — known Swift file used in fixture tests
     └── swift_guardianTests.swift
 ```
 
@@ -95,7 +100,7 @@ The tool writes suggestions to `YourFile.suggested.swift` in the same directory 
 swift test
 ```
 
-17 tests covering `ContextExtractor`, `SourceAnnotator`, `ForceUnwrapVisitor`, `ForceTryVisitor`, and `ForceCastVisitor`.
+20 tests covering `ContextExtractor`, `SourceAnnotator`, `ForceUnwrapVisitor`, `ForceTryVisitor`, `ForceCastVisitor` and NilCheckDetector.
 
 ## Extending
 
