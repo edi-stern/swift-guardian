@@ -30,6 +30,10 @@ public enum ClaudeService {
             suggestion = "Use conditional cast (as?) with a fallback, or guard against the wrong type before casting."
         }
 
+        let guardedNote = finding.isGuarded ?
+            "Note: a nil check for this value was detected nearby. Suggest how to refactor to eliminate both the nil check and the force unwrap using proper optional binding." :
+            ""
+
         let prompt = """
         You are a Swift code reviewer. The following Swift code contains a \(typeDescription) \
         on the expression `\(finding.expression)`.
@@ -37,6 +41,7 @@ public enum ClaudeService {
         Code context:
         \(context)
 
+        \(guardedNote)
         Suggest a safer alternative. \(suggestion) \
         Be concise — one or two lines maximum. Show only the fix, no explanation unless essential.
         """

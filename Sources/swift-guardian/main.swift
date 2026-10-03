@@ -50,14 +50,28 @@ print("⚠️  Found \(findings.count) unsafe patterns(s) in \(filePath)\n")
 var suggestions: [String] = []
 
 for finding in findings {
-    let context = ContextExtractor.extract(from: source, around: finding.line)
+    let context = ContextExtractor.extract(
+        from: source,
+        around: finding.line
+    )
+    let guardedFinding = finding.update(
+        isGuarded: NilCheckDetector
+            .isGuarded(
+            expression: finding.expression,
+            context: context
+        )
+    )
 
-    print("  Line \(finding.line), Col \(finding.column): \(finding.expression)")
+    print("  Line \(guardedFinding.line), Col \(guardedFinding.column): \(guardedFinding.expression)")
+    
+    if guardedFinding.isGuarded {
+        print("  ⚠️  Note: a nil check was detected nearby")
+    }
     print(context)
     print("\n  💡 Asking Claude for a fix...")
-
+    
     do {
-        let suggestion = try await ClaudeService.suggest(for: finding, context: context)
+        let suggestion = try await ClaudeService.suggest(for: guardedFinding, context: context)
         suggestions.append(suggestion)
         print("  ✅ Suggestion:\n\(suggestion)\n")
     } catch {
