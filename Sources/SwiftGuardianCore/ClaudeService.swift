@@ -15,16 +15,32 @@ public enum ClaudeService {
             "x-api-key": apiKey,
             "anthropic-version": "2023-06-01"
         ]
+        let typeDescription: String
+        let suggestion: String
+
+        switch finding.type {
+        case .forceUnwrap:
+            typeDescription = "force unwrap (!)"
+            suggestion = "Use optional binding (if let / guard let), nil coalescing (??), or make the value non-optional if it's always set."
+        case .forceTry:
+            typeDescription = "force try (try!)"
+            suggestion = "Use do-catch to handle the error, or try? to convert to an optional."
+        case .forceCast:
+            typeDescription = "force cast (as!)"
+            suggestion = "Use conditional cast (as?) with a fallback, or guard against the wrong type before casting."
+        }
+
         let prompt = """
-        You are a Swift code reviewer. The following Swift code contains a force unwrap \
+        You are a Swift code reviewer. The following Swift code contains a \(typeDescription) \
         on the expression `\(finding.expression)`.
 
         Code context:
         \(context)
 
-        Suggest a safer alternative. Be concise — one or two lines maximum. \
-        Show only the fix, no explanation unless essential.
+        Suggest a safer alternative. \(suggestion) \
+        Be concise — one or two lines maximum. Show only the fix, no explanation unless essential.
         """
+        
         let body: [String: Any] = [
             "model": "claude-sonnet-4-6",
             "max_tokens": 256,

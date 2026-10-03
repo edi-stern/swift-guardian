@@ -22,6 +22,14 @@ func makeTryVisitor(source: String) -> ForceTryVisitor {
     return visitor
 }
 
+func makeCastVisitor(source: String) -> ForceCastVisitor {
+    let tree = Parser.parse(source: source)
+    let converter = SourceLocationConverter(fileName: "test.swift", tree: tree)
+    let visitor = ForceCastVisitor(locationConverter: converter)
+    visitor.walk(tree)
+    return visitor
+}
+
 func fixtureSource(_ name: String) throws -> String {
     let url = Bundle.module.url(
         forResource: name,
@@ -70,13 +78,13 @@ struct SourceAnnotatorTests {
 
     @Test func insertsSuggestionAboveFinding() {
         let source = "let a = 1\nlet b = foo!\nlet c = 3"
-        let finding = Finding(line: 2, column: 9, expression: "foo!")
+        let finding = Finding(line: 2, column: 9, expression: "foo!", type: .forceUnwrap)
         let result = SourceAnnotator.annotate(
             source: source,
             findings: [finding],
             suggestions: ["let b = foo ?? defaultValue"]
         )
-        let lines = result.components(separatedBy: .newlines)
+        let lines = result.components(separatedBy: "\n")
         let commentIndex = lines.firstIndex(where: { $0.contains("💡") })!
         let findingIndex = lines.firstIndex(where: { $0.contains("foo!") })!
         #expect(commentIndex < findingIndex)
@@ -84,7 +92,7 @@ struct SourceAnnotatorTests {
 
     @Test func stripsMarkdownFences() {
         let source = "let a = 1\nlet b = foo!\nlet c = 3"
-        let finding = Finding(line: 2, column: 9, expression: "foo!")
+        let finding = Finding(line: 2, column: 9, expression: "foo!", type: .forceUnwrap)
         let result = SourceAnnotator.annotate(
             source: source,
             findings: [finding],
@@ -97,8 +105,8 @@ struct SourceAnnotatorTests {
     @Test func multiplesFindingsInsertedInOrder() {
         let source = "let a = foo!\nlet b = 2\nlet c = bar!"
         let findings = [
-            Finding(line: 1, column: 9, expression: "foo!"),
-            Finding(line: 3, column: 9, expression: "bar!")
+            Finding(line: 1, column: 9, expression: "foo!", type: .forceUnwrap),
+            Finding(line: 3, column: 9, expression: "bar!", type: .forceUnwrap)
         ]
         let result = SourceAnnotator.annotate(
             source: source,
@@ -158,6 +166,31 @@ struct ForceTryVisitorTests {
     @Test func ignoresPlainTry() {
         let source = "func f() throws {}\nlet x = try f()"
         let visitor = makeTryVisitor(source: source)
+        #expect(visitor.findings.count == 0)
+    }
+}
+
+// MARK: - ForceCastVisitor
+
+@Suite("ForceCastVisitor")
+struct ForceCastVisitorTests {
+
+    @Test func detectsForceCast() {
+        let source = "let value = str as! String"
+        let visitor = makeCastVisitor(source: source)
+        #expect(visitor.findings.count == 1)
+        #expect(visitor.findings[0].line == 1)
+    }
+
+    @Test func ignoresSafeCast() {
+        let source = "let value = str as? String"
+        let visitor = makeCastVisitor(source: source)
+        #expect(visitor.findings.count == 0)
+    }
+    
+    @Test func ignoresPlainCast() {
+        let source = "let value = str as String"
+        let visitor = makeCastVisitor(source: source)
         #expect(visitor.findings.count == 0)
     }
 }

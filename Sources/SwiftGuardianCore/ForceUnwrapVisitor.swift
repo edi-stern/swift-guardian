@@ -11,10 +11,14 @@ public final class ForceUnwrapVisitor: SyntaxVisitor {
 
     override public func visitPost(_ node: ForceUnwrapExprSyntax) {
         let location = node.startLocation(converter: locationConverter)
-        findings.append(Finding(
-            line: location.line,
-            column: location.column,
-            expression: node.trimmedDescription
-        ))
+        findings
+            .append(
+                Finding(
+                    line: location.line,
+                    column: location.column,
+                    expression: node.trimmedDescription,
+                    type: .forceUnwrap
+                )
+            )
     }
 }

@@ -17,7 +17,8 @@ public final class ForceTryVisitor: SyntaxVisitor {
                 Finding(
                     line: location.line,
                     column: location.column,
-                    expression: node.trimmedDescription
+                    expression: node.trimmedDescription,
+                    type: .forceTry
                 )
             )
     }

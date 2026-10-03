@@ -9,6 +9,7 @@ swift-guardian parses Swift source files into an Abstract Syntax Tree (AST), vis
 **Currently detects:**
 - Force unwraps — `foo!`
 - Force try — `try!`
+- Force casts — `as!`
 
 **Example output:**
 
@@ -36,7 +37,7 @@ let page = repository.fetchPage(offset: currentOffset, pageSize: pageSize)
 1. **Parse** — Apple's [SwiftSyntax](https://github.com/apple/swift-syntax) library parses the Swift source file into an AST
 2. **Visit** — `SyntaxVisitor` subclasses walk every node in the tree, recording findings when they encounter `ForceUnwrapExprSyntax` or `TryExprSyntax` with an exclamation mark token
 3. **Contextualise** — for each finding, the surrounding lines are extracted to give Claude enough context to understand the code
-4. **Suggest** — findings are sent to Claude via the Anthropic API, which returns a concise, context-aware fix
+4. **Suggest** — findings are sent to Claude via the Anthropic API with type-specific prompts — Claude is told whether it's reviewing a force unwrap, force try, or force cast, which produces more targeted suggestions
 5. **Annotate** — suggestions are inserted as `// 💡` comments directly above each finding in a new `.suggested.swift` file
 
 ## Architecture
@@ -46,9 +47,10 @@ Sources/
 ├── swift-guardian/
 │   └── main.swift              — entry point, wires everything together
 └── SwiftGuardianCore/
-    ├── Finding.swift            — value type representing a detected issue
+    ├── Finding.swift            — value type representing a detected issue (line, column, expression, type)
     ├── ForceUnwrapVisitor.swift — AST visitor for force unwraps
     ├── ForceTryVisitor.swift    — AST visitor for force try
+    ├── ForceCastVisitor.swift   — AST visitor for force casts
     ├── ContextExtractor.swift   — extracts surrounding lines for a finding
     ├── APIClient.swift          — generic HTTP POST layer
     ├── ClaudeService.swift      — Anthropic API integration and prompt
@@ -92,7 +94,7 @@ The tool writes suggestions to `YourFile.suggested.swift` in the same directory 
 swift test
 ```
 
-14 tests covering `ContextExtractor`, `SourceAnnotator`, `ForceUnwrapVisitor`, and `ForceTryVisitor`.
+17 tests covering `ContextExtractor`, `SourceAnnotator`, `ForceUnwrapVisitor`, `ForceTryVisitor`, and `ForceCastVisitor`.
 
 ## Extending
 
