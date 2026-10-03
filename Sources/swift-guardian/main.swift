@@ -58,7 +58,8 @@ for finding in findings {
         isGuarded: NilCheckDetector
             .isGuarded(
             expression: finding.expression,
-            context: context
+            source: source,
+            around: finding.line
         )
     )
 
