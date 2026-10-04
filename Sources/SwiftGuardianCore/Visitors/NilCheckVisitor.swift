@@ -11,8 +11,8 @@ final class NilCheckVisitor: SyntaxVisitor {
     
     // detects if let or guard let
     override func visitPost(_ node: OptionalBindingConditionSyntax) {
-        if let pattern = node.pattern.as(IdentifierPatternSyntax.self) {
-            if pattern.identifier.text == variableName {
+        if let pattern = node.pattern.as(IdentifierPatternSyntax.self),
+           pattern.identifier.text == variableName {
                 isGuarded = true
             }
         }

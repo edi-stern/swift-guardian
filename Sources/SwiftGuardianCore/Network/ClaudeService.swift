@@ -5,12 +5,16 @@ public enum ClaudeService {
         case missingAPIKey
         case noSuggestionReturned
     }
+    
+    private enum Constants {
+        static let apiURL = URL(string: "https://api.anthropic.com/v1/messages")!
+    }
 
     public static func suggest(for finding: Finding, context: String) async throws -> String {
         guard let apiKey = ProcessInfo.processInfo.environment["ANTHROPIC_API_KEY"] else {
             throw ClaudeError.missingAPIKey
         }
-        let url = URL(string: "https://api.anthropic.com/v1/messages")!
+        let url = Constants.apiURL
         let headers = [
             "x-api-key": apiKey,
             "anthropic-version": "2023-06-01"
