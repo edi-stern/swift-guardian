@@ -1,0 +1,32 @@
+name: SonarCloud Analysis
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  sonarcloud:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Build and test
+        run: |
+          swift test --enable-code-coverage 2>&1 | xcpretty || swift test --enable-code-coverage
+
+      - name: Convert coverage
+        run: |
+          xcrun llvm-cov export \
+            .build/debug/swift-guardianPackageTests.xctest/Contents/MacOS/swift-guardianPackageTests \
+            -instr-profile .build/debug/codecov/default.profdata \
+            -format=lcov > coverage.lcov
+
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
