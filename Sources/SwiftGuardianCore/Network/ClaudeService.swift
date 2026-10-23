@@ -17,8 +17,10 @@ public enum ClaudeService {
         let url = Constants.apiURL
         let headers = [
             "x-api-key": apiKey,
-            "anthropic-version": "2023-06-01"
+            "anthropic-version": "2023-06-01",
+            "anthropic-beta": "prompt-caching-2024-07-31"
         ]
+        
         let typeDescription: String
         let suggestion: String
 
@@ -39,22 +41,33 @@ public enum ClaudeService {
             ""
 
         let prompt = """
-        You are a Swift code reviewer. The following Swift code contains a \(typeDescription) \
-        on the expression `\(finding.expression)`.
+        The following Swift code contains a \(typeDescription) on the expression `\(finding.expression)`.
 
         Code context:
         \(context)
 
         \(guardedNote)
-        Suggest a safer alternative. \(suggestion) \
-        Be concise — one or two lines maximum. Show only the fix, no explanation unless essential.
+        \(suggestion)
         """
         
         let body: [String: Any] = [
             "model": "claude-sonnet-4-6",
             "max_tokens": 256,
-            "messages": [["role": "user", "content": prompt]]
+            "system": [
+                [
+                    "type": "text",
+                    "text": "You are a Swift code reviewer. When shown Swift code containing an unsafe pattern, suggest a safer alternative. Be concise — one or two lines maximum. Show only the fix, no explanation unless essential.",
+                    "cache_control": ["type": "ephemeral"]
+                ]
+            ],
+            "messages": [
+                [
+                    "role": "user",
+                    "content": prompt
+                ]
+            ]
         ]
+        
         let json = try await APIClient.post(url: url, headers: headers, body: body)
         let content = (json["content"] as? [[String: Any]])?.first
         guard let text = content?["text"] as? String else {
