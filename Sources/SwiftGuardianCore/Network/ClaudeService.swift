@@ -51,7 +51,7 @@ public enum ClaudeService {
         """
         
         let body: [String: Any] = [
-            "model": "claude-sonnet-4-6",
+            "model": "claude-haiku-5-5",
             "max_tokens": 256,
             "system": [
                 [

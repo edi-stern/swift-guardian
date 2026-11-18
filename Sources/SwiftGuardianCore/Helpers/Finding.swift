@@ -1,4 +1,4 @@
-public struct Finding {
+public struct Finding: Equatable {
     public let line: Int
     public let column: Int
     public let expression: String
@@ -18,8 +18,16 @@ public struct Finding {
     }
 }
 
-public enum FindingType {
+public enum FindingType: CaseIterable {
     case forceUnwrap
     case forceTry
     case forceCast
+
+    public var displayName: String {
+        switch self {
+        case .forceUnwrap: return "force unwrap (!)"
+        case .forceTry: return "force try (try!)"
+        case .forceCast: return "force cast (as!)"
+        }
+    }
 }
